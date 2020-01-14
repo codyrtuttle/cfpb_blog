@@ -1,0 +1,71 @@
+---
+title: "NFWBS Blog"
+author: "Cody Tuttle"
+date: "1/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+data <- read.csv("/Users/codytuttle/Documents/GitHub/cfpb_blog/cfpb_clean.csv")
+
+library("pacman")
+
+p_load(tidyverse, survey, srvyr)
+
+
+```
+
+
+```{r}
+
+dw <- svydesign(ids = data$PUF_ID, data = data, weights = data$finalwt)
+
+prop.table(table(data$PPETHM))
+
+prop.table(svytable(~PPETHM, design = dw))
+```
+
+
+```{r}
+
+weighted <- data %>%
+  as_survey(PUF_ID, weight = finalwt)
+
+weighted %>%
+  group_by(PPETHM, fpl) %>%
+  summarize(finscore = survey_mean(as.numeric(FWBscore))) %>%
+  ggplot(aes(x = PPETHM, y = finscore, group = fpl, fill = fpl)) +
+    geom_bar(stat = "identity", position = "dodge")
+
+weighted %>%
+  group_by(PPETHM, fpl) %>%
+  summarize(fsscore = survey_mean(as.numeric(FSscore))) %>%
+  ggplot(aes(x = PPETHM, y = fsscore, group = fpl, fill = fpl)) +
+    geom_bar(stat = "identity", position = "dodge")
+
+weighted %>%
+  filter(REJECTED_1 != "Refused") %>%
+  group_by(PPETHM) %>%
+  summarize(rejected = survey_mean(as.numeric(REJECTED_1))) %>%
+  ggplot(aes(x = PPETHM, y = rejected)) +
+    geom_bar(stat = "identity")
+
+weighted %>%
+  filter(REJECTED_1 != "Refused") %>%
+  group_by(PPETHM, REJECTED_1) %>%
+  summarize(proportion = survey_mean(), 
+            total = survey_total()) %>%
+  ggplot(aes(x = PPETHM, y = proportion, group = REJECTED_1, fill = REJECTED_1)) +
+    geom_bar(stat = "identity", position = "dodge")
+    
+
+prop.table(table(data$REJECTED_1))
+
+```
+
