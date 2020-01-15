@@ -9,10 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Hello everyone! Welcome back to my blog - it's been way too long, I know, but I'm back for a post before I start my new semester (my final semester of grad school HALLELUJAH!!!). As much as I want to update you on my life and everything, I'm going to skip the pleasantries and just get straight to the post. 
 
 
 ```{r}
-data <- read.csv("/Users/codytuttle/Documents/GitHub/cfpb_blog/cfpb_clean.csv")
+data <- read.csv("/Users/codytuttle/Desktop/cfpb_blog/cfpb_clean.csv")
 
 library("pacman")
 
@@ -50,18 +51,12 @@ weighted %>%
     geom_bar(stat = "identity", position = "dodge")
 
 weighted %>%
-  filter(REJECTED_1 != "Refused") %>%
-  group_by(PPETHM) %>%
-  summarize(rejected = survey_mean(as.numeric(REJECTED_1))) %>%
-  ggplot(aes(x = PPETHM, y = rejected)) +
-    geom_bar(stat = "identity")
-
-weighted %>%
-  filter(REJECTED_1 != "Refused") %>%
-  group_by(PPETHM, REJECTED_1) %>%
-  summarize(proportion = survey_mean(), 
-            total = survey_total()) %>%
-  ggplot(aes(x = PPETHM, y = proportion, group = REJECTED_1, fill = REJECTED_1)) +
+  group_by(PPETHM, fpl) %>%
+  mutate(rejected = ifelse(REJECTED_1 == "Yes", 1, 
+                           ifelse(REJECTED_1 == "No", 0, 99))) %>%
+  filter(rejected != 99) %>%
+  summarize(rejected = survey_mean(rejected)) %>%
+  ggplot(aes(x = PPETHM, y = (100*rejected), group = fpl, fill = fpl)) +
     geom_bar(stat = "identity", position = "dodge")
     
 
